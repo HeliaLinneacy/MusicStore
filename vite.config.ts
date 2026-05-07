@@ -17,7 +17,7 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
-  base: '/MusicStore/', // Đúng với repo GitHub Pages
+  base: '/', // Cấu hình cho tên miền riêng
   plugins: [
     figmaAssetResolver(),
     react(),

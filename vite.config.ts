@@ -17,7 +17,7 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
-  base: '/MusicStore-main/', // Set to your repo name for GitHub Pages
+  base: '/MusicStore/', // Đúng với repo GitHub Pages
   plugins: [
     figmaAssetResolver(),
     react(),

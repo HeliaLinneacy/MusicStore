@@ -19,7 +19,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchCart = async () => {
       if (!user) {
-        setCart([]);
+        // Load guest cart from localStorage if needed, but state is fine for now
         return;
       }
 
@@ -29,8 +29,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           setCart(data);
         }
-      } catch {
-        setCart([]);
+      } catch (error) {
+        console.warn('API unavailable, using local state for cart');
       }
     };
 
@@ -38,7 +38,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const addToCart = async (id: string, type: 'song' | 'album') => {
-    if (!user) {
+    // Helper to update state locally
+    const updateLocalCart = () => {
       setCart(prev => {
         const existing = prev.find(item => item.id === id && item.type === type);
         if (existing) {
@@ -50,47 +51,77 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
         return [...prev, { id, type, quantity: 1 }];
       });
+    };
+
+    if (!user) {
+      updateLocalCart();
       return;
     }
 
-    const response = await fetch('/api/cart', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id, itemId: id, type })
-    });
-    if (response.ok) {
-      const data = await response.json();
-      setCart(data);
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, itemId: id, type })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCart(data);
+        return;
+      }
+    } catch (error) {
+      console.warn('API unavailable, adding to cart locally');
     }
+    updateLocalCart();
   };
 
   const removeFromCart = async (id: string) => {
-    if (!user) {
+    const updateLocalRemove = () => {
       setCart(prev => prev.filter(item => item.id !== id));
+    };
+
+    if (!user) {
+      updateLocalRemove();
       return;
     }
 
-    const response = await fetch(`/api/cart/${id}?userId=${user.id}`, {
-      method: 'DELETE'
-    });
-    if (response.ok) {
-      const data = await response.json();
-      setCart(data);
+    try {
+      const response = await fetch(`/api/cart/${id}?userId=${user.id}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCart(data);
+        return;
+      }
+    } catch (error) {
+      console.warn('API unavailable, removing from cart locally');
     }
+    updateLocalRemove();
   };
 
   const clearCart = async () => {
-    if (!user) {
+    const updateLocalClear = () => {
       setCart([]);
+    };
+
+    if (!user) {
+      updateLocalClear();
       return;
     }
 
-    const response = await fetch(`/api/cart/clear?userId=${user.id}`, {
-      method: 'DELETE'
-    });
-    if (response.ok) {
-      setCart([]);
+    try {
+      const response = await fetch(`/api/cart/clear?userId=${user.id}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        setCart([]);
+        return;
+      }
+    } catch (error) {
+      console.warn('API unavailable, clearing cart locally');
     }
+    updateLocalClear();
   };
 
   const getCartTotal = () => {

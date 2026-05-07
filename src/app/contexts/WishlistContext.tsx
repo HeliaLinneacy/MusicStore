@@ -22,7 +22,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchWishlist = async () => {
       if (!user) {
-        setWishlist([]);
         return;
       }
 
@@ -32,8 +31,8 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           setWishlist(data);
         }
-      } catch {
-        setWishlist([]);
+      } catch (error) {
+        console.warn('API unavailable, using local state for wishlist');
       }
     };
 
@@ -41,7 +40,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const addToWishlist = async (id: string, type: 'song' | 'album') => {
-    if (!user) {
+    const updateLocalWishlist = () => {
       setWishlist(prev => {
         const exists = prev.some(item => item.id === id && item.type === type);
         if (!exists) {
@@ -49,33 +48,53 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         }
         return prev;
       });
+    };
+
+    if (!user) {
+      updateLocalWishlist();
       return;
     }
 
-    const response = await fetch('/api/wishlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id, itemId: id, type })
-    });
-    if (response.ok) {
-      const data = await response.json();
-      setWishlist(data);
+    try {
+      const response = await fetch('/api/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, itemId: id, type })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setWishlist(data);
+        return;
+      }
+    } catch (error) {
+      console.warn('API unavailable, adding to wishlist locally');
     }
+    updateLocalWishlist();
   };
 
   const removeFromWishlist = async (id: string) => {
-    if (!user) {
+    const updateLocalRemove = () => {
       setWishlist(prev => prev.filter(item => item.id !== id));
+    };
+
+    if (!user) {
+      updateLocalRemove();
       return;
     }
 
-    const response = await fetch(`/api/wishlist/${id}?userId=${user.id}`, {
-      method: 'DELETE'
-    });
-    if (response.ok) {
-      const data = await response.json();
-      setWishlist(data);
+    try {
+      const response = await fetch(`/api/wishlist/${id}?userId=${user.id}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setWishlist(data);
+        return;
+      }
+    } catch (error) {
+      console.warn('API unavailable, removing from wishlist locally');
     }
+    updateLocalRemove();
   };
 
   const isInWishlist = (id: string): boolean => {

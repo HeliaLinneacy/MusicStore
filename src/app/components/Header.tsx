@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Heart, User, Search, Music } from 'lucide-react';
+import { ShoppingCart, Heart, User, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
@@ -29,10 +29,18 @@ export default function Header() {
     <header className="bg-white border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-6">
-          <Link to="/" className="flex items-center gap-2">
-            <Music className="w-8 h-8 text-blue-600" />
-            <span className="font-semibold text-xl">MusicStore</span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <a href="https://ictu.edu.vn/" target="_blank" rel="noopener noreferrer" className="flex items-center">
+              <img 
+                src="https://ictu.edu.vn/wp-content/uploads/2023/02/cropped-logoww.png" 
+                alt="ICTU Logo" 
+                className="h-10 w-auto object-contain"
+              />
+            </a>
+            <Link to="/" className="flex items-center gap-2">
+              <span className="font-semibold text-xl">MusicStore</span>
+            </Link>
+          </div>
 
           <Link to="/search" className="flex-1 max-w-2xl">
             <div className="relative">
